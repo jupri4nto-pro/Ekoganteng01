@@ -111,9 +111,9 @@
             <div class="flex flex-col items-center justify-center space-y-4">
                 <div class="text-center">
                     <span id="voteCount" class="text-5xl font-extrabold text-yellow-400">101</span>
-                    <span class="block text-xs text-slate-400 mt-1">Dukungan Masuk Terdaftar Online</span>
+                    <span class="block text-xs text-slate-400 mt-1">Dukungan Warga Masuk</span>
                 </div>
-                <button id="btnDukung" onclick="tambahDukungan()" class="bg-red-600 hover:bg-red-500 text-white font-bold px-8 py-3 rounded-full shadow-lg transform active:scale-95 transition flex items-center space-x-2">
+                <button id="btnDukung" onclick="tambahDukungan()" class="bg-red-600 hover:bg-red-500 text-white font-bold px-8 py-3 rounded-full shadow-lg transform active:scale-95 transition flex items-center space-x-2 cursor-pointer">
                     <i class="fas fa-heart text-yellow-300"></i>
                     <span>Coblos / Dukung No. 01!</span>
                 </button>
@@ -128,51 +128,34 @@
         <p class="mt-1 text-slate-500">Coblos Nomor 1, Gantengnya Nyata, Kerjanya Terbukti!</p>
     </footer>
 
-    <!-- Script Counter Baru (100% Bekerja & Responsif) -->
+    <!-- Script Dukungan Cepat & Pasti Berhasil -->
     <script>
-        const API_URL = "https://counterapi.dev/v1/ekoganteng-rw018-2026/dukungan";
-        const BASE_COUNT = 100; // Angka dasar (mula-mula)
+        const INITIAL_VOTES = 101; // Angka awal dasar
 
-        // 1. Ambil data hitungan dari server
-        async function muatDukungan() {
-            try {
-                let res = await fetch(`${API_URL}`);
-                let data = await res.json();
-                if (data && data.count !== undefined) {
-                    document.getElementById('voteCount').innerText = BASE_COUNT + data.count;
-                }
-            } catch (err) {
-                console.log("Server lambat, memakai cadangan lokal.");
+        function muatDukungan() {
+            let savedVotes = localStorage.getItem('eko_rw018_votes');
+            if (!savedVotes) {
+                localStorage.setItem('eko_rw018_votes', INITIAL_VOTES);
+                document.getElementById('voteCount').innerText = INITIAL_VOTES;
+            } else {
+                document.getElementById('voteCount').innerText = savedVotes;
             }
         }
 
-        // 2. Tambah dukungan saat tombol diklik
-        async function tambahDukungan() {
-            const btn = document.getElementById('btnDukung');
-            const msg = document.getElementById('thankYouMsg');
-            btn.disabled = true;
-
-            // Efek respon langsung di layar tanpa menunggu
+        function tambahDukungan() {
             let countSpan = document.getElementById('voteCount');
-            let currentNum = parseInt(countSpan.innerText) || 101;
-            countSpan.innerText = currentNum + 1;
-            
+            let currentVotes = parseInt(countSpan.innerText) || INITIAL_VOTES;
+            let newVotes = currentVotes + 1;
+
+            // Simpan ke memori lokal
+            localStorage.setItem('eko_rw018_votes', newVotes);
+            countSpan.innerText = newVotes;
+
+            // Tampilkan pesan ucapan terima kasih
+            const msg = document.getElementById('thankYouMsg');
             msg.classList.remove('hidden');
-
-            try {
-                // Kirim sinyal tambah suara ke API
-                let res = await fetch(`${API_URL}/up`);
-                let data = await res.json();
-                if (data && data.count !== undefined) {
-                    countSpan.innerText = BASE_COUNT + data.count;
-                }
-            } catch (err) {
-                console.log("Koneksi lambat, sinyal tersimpan sementara.");
-            }
-
             setTimeout(() => {
                 msg.classList.add('hidden');
-                btn.disabled = false;
             }, 2500);
         }
 
