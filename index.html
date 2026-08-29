@@ -99,7 +99,7 @@
         </div>
     </section>
 
-    <!-- Widget Interactive: Kirim Dukungan -->
+    <!-- Widget Interactive: Kirim Dukungan Realtime -->
     <section id="dukungan" class="max-w-4xl mx-auto px-4 py-8">
         <div class="bg-gradient-to-br from-slate-900 to-red-950 text-white rounded-3xl p-6 md:p-8 shadow-2xl">
             <div class="text-center mb-6">
@@ -110,14 +110,14 @@
             <!-- Counter Section -->
             <div class="flex flex-col items-center justify-center space-y-4">
                 <div class="text-center">
-                    <span id="voteCount" class="text-5xl font-extrabold text-yellow-400">101</span>
-                    <span class="block text-xs text-slate-400 mt-1">Dukungan Warga Masuk</span>
+                    <span id="voteCount" class="text-5xl font-extrabold text-yellow-400">...</span>
+                    <span class="block text-xs text-slate-400 mt-1">Dukungan Warga Masuk (Realtime Cloud)</span>
                 </div>
                 <button type="button" id="btnDukung" class="bg-red-600 hover:bg-red-500 active:bg-red-700 text-white font-bold px-8 py-3 rounded-full shadow-lg transition flex items-center space-x-2 cursor-pointer select-none">
                     <i class="fas fa-heart text-yellow-300"></i>
                     <span id="btnText">Coblos / Dukung No. 01!</span>
                 </button>
-                <p id="thankYouMsg" class="text-sm text-green-400 font-semibold hidden">Terima kasih! Dukungan Anda sudah terdaftar 😊</p>
+                <p id="thankYouMsg" class="text-sm text-green-400 font-semibold hidden">Terima kasih! Dukungan Anda terdaftar di database online 😊</p>
             </div>
         </div>
     </section>
@@ -128,20 +128,37 @@
         <p class="mt-1 text-slate-500">Coblos Nomor 1, Gantengnya Nyata, Kerjanya Terbukti!</p>
     </footer>
 
-    <!-- Script Pengunci 1 Perangkat 1 Suara -->
+    <!-- Firebase Script Realtime -->
     <script>
+        const FIREBASE_URL = "https://kampanye-eko-default-rtdb.asia-southeast1.firebasedatabase.app/"; 
+        const BASE_VOTES = 100; // Angka awal tampilan (misal 100 + suara masuk)
+
         document.addEventListener("DOMContentLoaded", function() {
             var btn = document.getElementById("btnDukung");
             var btnText = document.getElementById("btnText");
             var countDisplay = document.getElementById("voteCount");
             var msg = document.getElementById("thankYouMsg");
 
-            // Cek status apakah perangkat ini sudah pernah memilih
-            var hasVoted = localStorage.getItem("eko_has_voted");
-            var currentCount = parseInt(localStorage.getItem("eko_votes") || "101");
-            countDisplay.innerText = currentCount;
+            // Ambil status apakah perangkat ini sudah pernah vote
+            var hasVoted = localStorage.getItem("eko_rw018_voted");
 
-            // Jika sudah pernah memilih, kunci tombolnya
+            // Ambil jumlah suara dari server Firebase
+            function loadVotes() {
+                fetch(FIREBASE_URL + "votes.json")
+                    .then(res => res.json())
+                    .then(data => {
+                        let total = (data !== null && data !== undefined) ? data : 1;
+                        countDisplay.innerText = BASE_VOTES + total;
+                    })
+                    .catch(() => {
+                        countDisplay.innerText = BASE_VOTES + 1;
+                    });
+            }
+
+            // Muat suara awal & update tiap 3 detik secara realtime
+            loadVotes();
+            setInterval(loadVotes, 3000);
+
             if (hasVoted === "true") {
                 kunciTombol();
             }
@@ -155,16 +172,28 @@
             }
 
             btn.addEventListener("click", function() {
-                if (localStorage.getItem("eko_has_voted") === "true") return;
+                if (localStorage.getItem("eko_rw018_voted") === "true") return;
 
-                currentCount++;
-                countDisplay.innerText = currentCount;
-                
-                // Simpan jumlah suara dan tandai perangkat ini sudah memilih
-                localStorage.setItem("eko_votes", currentCount.toString());
-                localStorage.setItem("eko_has_voted", "true");
+                btn.disabled = true;
 
-                kunciTombol();
+                // Ambil nilai terbaru lalu kirim +1 ke Firebase
+                fetch(FIREBASE_URL + "votes.json")
+                    .then(res => res.json())
+                    .then(data => {
+                        let current = (data !== null && data !== undefined) ? data : 0;
+                        let newCount = current + 1;
+
+                        fetch(FIREBASE_URL + "votes.json", {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(newCount)
+                        })
+                        .then(() => {
+                            localStorage.setItem("eko_rw018_voted", "true");
+                            countDisplay.innerText = BASE_VOTES + newCount;
+                            kunciTombol();
+                        });
+                    });
             });
         });
     </script>
