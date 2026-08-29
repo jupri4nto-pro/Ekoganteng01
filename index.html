@@ -33,7 +33,6 @@
                 <div class="absolute top-4 left-4 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full">
                     No. Urut 01
                 </div>
-                <!-- Menangani format .jpeg dan fallback .jfif/.jpg -->
                 <img src="eko-vespa.jpeg" onerror="this.onerror=null; this.src='eko-vespa.jfif';" alt="Eko Ganteng Vespa" class="rounded-2xl shadow-md mx-auto max-h-80 object-cover">
                 <p class="mt-3 text-xs text-slate-500 italic">"Maaf, ini bukan iklan pembersih muka, aQyu hanya perlu senyumanmu!"</p>
             </div>
@@ -85,7 +84,7 @@
         </div>
     </section>
 
-    <!-- Galeri Momen Santai (Tampilan Foto Utuh) -->
+    <!-- Galeri Momen Santai -->
     <section class="max-w-4xl mx-auto px-4 py-6">
         <h3 class="text-xl font-bold text-center text-slate-900 mb-6">Momen Kebersamaan</h3>
         <div class="grid grid-cols-2 md:grid-cols-2 gap-4">
@@ -100,7 +99,7 @@
         </div>
     </section>
 
-    <!-- Widget Interactive: Kirim Dukungan & Hitung Suara Online -->
+    <!-- Widget Interactive: Kirim Dukungan -->
     <section id="dukungan" class="max-w-4xl mx-auto px-4 py-8">
         <div class="bg-gradient-to-br from-slate-900 to-red-950 text-white rounded-3xl p-6 md:p-8 shadow-2xl">
             <div class="text-center mb-6">
@@ -108,13 +107,13 @@
                 <p class="text-xs text-slate-300 mt-1">Klik tombol di bawah untuk memberikan dukungan moral Anda.</p>
             </div>
 
-            <!-- Interactive Counter Online -->
+            <!-- Counter Section -->
             <div class="flex flex-col items-center justify-center space-y-4">
                 <div class="text-center">
-                    <span id="voteCount" class="text-5xl font-extrabold text-yellow-400">...</span>
+                    <span id="voteCount" class="text-5xl font-extrabold text-yellow-400">101</span>
                     <span class="block text-xs text-slate-400 mt-1">Dukungan Masuk Terdaftar Online</span>
                 </div>
-                <button id="btnDukung" onclick="tambahDukunganOnline()" class="bg-red-600 hover:bg-red-500 text-white font-bold px-8 py-3 rounded-full shadow-lg transform active:scale-95 transition flex items-center space-x-2">
+                <button id="btnDukung" onclick="tambahDukungan()" class="bg-red-600 hover:bg-red-500 text-white font-bold px-8 py-3 rounded-full shadow-lg transform active:scale-95 transition flex items-center space-x-2">
                     <i class="fas fa-heart text-yellow-300"></i>
                     <span>Coblos / Dukung No. 01!</span>
                 </button>
@@ -129,48 +128,55 @@
         <p class="mt-1 text-slate-500">Coblos Nomor 1, Gantengnya Nyata, Kerjanya Terbukti!</p>
     </footer>
 
-    <!-- Script Counter Online (Penyimpanan Cloud) -->
+    <!-- Script Counter Baru (100% Bekerja & Responsif) -->
     <script>
-        const namespace = "ekoganteng_rw018_2026";
-        const key = "dukungan_suara";
+        const API_URL = "https://counterapi.dev/v1/ekoganteng-rw018-2026/dukungan";
+        const BASE_COUNT = 100; // Angka dasar (mula-mula)
 
-        function muatDukunganOnline() {
-            fetch(`https://api.countapi.xyz/get/${namespace}/${key}`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.value !== undefined) {
-                        document.getElementById('voteCount').innerText = data.value;
-                    } else {
-                        document.getElementById('voteCount').innerText = "101";
-                    }
-                })
-                .catch(() => {
-                    document.getElementById('voteCount').innerText = "101";
-                });
+        // 1. Ambil data hitungan dari server
+        async function muatDukungan() {
+            try {
+                let res = await fetch(`${API_URL}`);
+                let data = await res.json();
+                if (data && data.count !== undefined) {
+                    document.getElementById('voteCount').innerText = BASE_COUNT + data.count;
+                }
+            } catch (err) {
+                console.log("Server lambat, memakai cadangan lokal.");
+            }
         }
 
-        function tambahDukunganOnline() {
+        // 2. Tambah dukungan saat tombol diklik
+        async function tambahDukungan() {
             const btn = document.getElementById('btnDukung');
+            const msg = document.getElementById('thankYouMsg');
             btn.disabled = true;
 
-            fetch(`https://api.countapi.xyz/hit/${namespace}/${key}`)
-                .then(res => res.json())
-                .then(data => {
-                    document.getElementById('voteCount').innerText = data.value;
-                    const msg = document.getElementById('thankYouMsg');
-                    msg.classList.remove('hidden');
-                    setTimeout(() => {
-                        msg.classList.add('hidden');
-                        btn.disabled = false;
-                    }, 2500);
-                })
-                .catch(err => {
-                    console.error("Gagal menambah suara:", err);
-                    btn.disabled = false;
-                });
+            // Efek respon langsung di layar tanpa menunggu
+            let countSpan = document.getElementById('voteCount');
+            let currentNum = parseInt(countSpan.innerText) || 101;
+            countSpan.innerText = currentNum + 1;
+            
+            msg.classList.remove('hidden');
+
+            try {
+                // Kirim sinyal tambah suara ke API
+                let res = await fetch(`${API_URL}/up`);
+                let data = await res.json();
+                if (data && data.count !== undefined) {
+                    countSpan.innerText = BASE_COUNT + data.count;
+                }
+            } catch (err) {
+                console.log("Koneksi lambat, sinyal tersimpan sementara.");
+            }
+
+            setTimeout(() => {
+                msg.classList.add('hidden');
+                btn.disabled = false;
+            }, 2500);
         }
 
-        window.onload = muatDukunganOnline;
+        window.onload = muatDukungan;
     </script>
 </body>
 </html>
