@@ -115,9 +115,9 @@
                 </div>
                 <button type="button" id="btnDukung" class="bg-red-600 hover:bg-red-500 active:bg-red-700 text-white font-bold px-8 py-3 rounded-full shadow-lg transition flex items-center space-x-2 cursor-pointer select-none">
                     <i class="fas fa-heart text-yellow-300"></i>
-                    <span>Coblos / Dukung No. 01!</span>
+                    <span id="btnText">Coblos / Dukung No. 01!</span>
                 </button>
-                <p id="thankYouMsg" class="text-sm text-green-400 font-semibold hidden">Terima kasih! Senyumanmu adalah semangat Eko! 😊</p>
+                <p id="thankYouMsg" class="text-sm text-green-400 font-semibold hidden">Terima kasih! Dukungan Anda sudah terdaftar 😊</p>
             </div>
         </div>
     </section>
@@ -128,26 +128,43 @@
         <p class="mt-1 text-slate-500">Coblos Nomor 1, Gantengnya Nyata, Kerjanya Terbukti!</p>
     </footer>
 
-    <!-- Script Event Listener Langsung -->
+    <!-- Script Pengunci 1 Perangkat 1 Suara -->
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             var btn = document.getElementById("btnDukung");
+            var btnText = document.getElementById("btnText");
             var countDisplay = document.getElementById("voteCount");
             var msg = document.getElementById("thankYouMsg");
 
-            // Ambil data lokal
+            // Cek status apakah perangkat ini sudah pernah memilih
+            var hasVoted = localStorage.getItem("eko_has_voted");
             var currentCount = parseInt(localStorage.getItem("eko_votes") || "101");
             countDisplay.innerText = currentCount;
 
+            // Jika sudah pernah memilih, kunci tombolnya
+            if (hasVoted === "true") {
+                kunciTombol();
+            }
+
+            function kunciTombol() {
+                btn.disabled = true;
+                btn.classList.remove("bg-red-600", "hover:bg-red-500", "cursor-pointer");
+                btn.classList.add("bg-slate-600", "cursor-not-allowed", "opacity-75");
+                btnText.innerText = "Sudah Memberikan Dukungan ✓";
+                msg.classList.remove("hidden");
+            }
+
             btn.addEventListener("click", function() {
+                if (localStorage.getItem("eko_has_voted") === "true") return;
+
                 currentCount++;
                 countDisplay.innerText = currentCount;
-                localStorage.setItem("eko_votes", currentCount.toString());
                 
-                msg.classList.remove("hidden");
-                setTimeout(function() {
-                    msg.classList.add("hidden");
-                }, 2000);
+                // Simpan jumlah suara dan tandai perangkat ini sudah memilih
+                localStorage.setItem("eko_votes", currentCount.toString());
+                localStorage.setItem("eko_has_voted", "true");
+
+                kunciTombol();
             });
         });
     </script>
