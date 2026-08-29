@@ -113,7 +113,7 @@
                     <span id="voteCount" class="text-5xl font-extrabold text-yellow-400">101</span>
                     <span class="block text-xs text-slate-400 mt-1">Dukungan Warga Masuk</span>
                 </div>
-                <button id="btnDukung" onclick="tambahDukungan()" class="bg-red-600 hover:bg-red-500 text-white font-bold px-8 py-3 rounded-full shadow-lg transform active:scale-95 transition flex items-center space-x-2 cursor-pointer">
+                <button type="button" id="btnDukung" class="bg-red-600 hover:bg-red-500 active:bg-red-700 text-white font-bold px-8 py-3 rounded-full shadow-lg transition flex items-center space-x-2 cursor-pointer select-none">
                     <i class="fas fa-heart text-yellow-300"></i>
                     <span>Coblos / Dukung No. 01!</span>
                 </button>
@@ -128,38 +128,28 @@
         <p class="mt-1 text-slate-500">Coblos Nomor 1, Gantengnya Nyata, Kerjanya Terbukti!</p>
     </footer>
 
-    <!-- Script Dukungan Cepat & Pasti Berhasil -->
+    <!-- Script Event Listener Langsung -->
     <script>
-        const INITIAL_VOTES = 101; // Angka awal dasar
+        document.addEventListener("DOMContentLoaded", function() {
+            var btn = document.getElementById("btnDukung");
+            var countDisplay = document.getElementById("voteCount");
+            var msg = document.getElementById("thankYouMsg");
 
-        function muatDukungan() {
-            let savedVotes = localStorage.getItem('eko_rw018_votes');
-            if (!savedVotes) {
-                localStorage.setItem('eko_rw018_votes', INITIAL_VOTES);
-                document.getElementById('voteCount').innerText = INITIAL_VOTES;
-            } else {
-                document.getElementById('voteCount').innerText = savedVotes;
-            }
-        }
+            // Ambil data lokal
+            var currentCount = parseInt(localStorage.getItem("eko_votes") || "101");
+            countDisplay.innerText = currentCount;
 
-        function tambahDukungan() {
-            let countSpan = document.getElementById('voteCount');
-            let currentVotes = parseInt(countSpan.innerText) || INITIAL_VOTES;
-            let newVotes = currentVotes + 1;
-
-            // Simpan ke memori lokal
-            localStorage.setItem('eko_rw018_votes', newVotes);
-            countSpan.innerText = newVotes;
-
-            // Tampilkan pesan ucapan terima kasih
-            const msg = document.getElementById('thankYouMsg');
-            msg.classList.remove('hidden');
-            setTimeout(() => {
-                msg.classList.add('hidden');
-            }, 2500);
-        }
-
-        window.onload = muatDukungan;
+            btn.addEventListener("click", function() {
+                currentCount++;
+                countDisplay.innerText = currentCount;
+                localStorage.setItem("eko_votes", currentCount.toString());
+                
+                msg.classList.remove("hidden");
+                setTimeout(function() {
+                    msg.classList.add("hidden");
+                }, 2000);
+            });
+        });
     </script>
 </body>
 </html>
