@@ -85,7 +85,7 @@
         </div>
     </section>
 
-    <!-- Galeri Momen Santai -->
+    <!-- Galeri Momen Santai (Tampilan Foto Utuh) -->
     <section class="max-w-4xl mx-auto px-4 py-6">
         <h3 class="text-xl font-bold text-center text-slate-900 mb-6">Momen Kebersamaan</h3>
         <div class="grid grid-cols-2 md:grid-cols-2 gap-4">
@@ -100,7 +100,7 @@
         </div>
     </section>
 
-    <!-- Widget Interactive: Kirim Dukungan & Hitung Suara -->
+    <!-- Widget Interactive: Kirim Dukungan & Hitung Suara Online -->
     <section id="dukungan" class="max-w-4xl mx-auto px-4 py-8">
         <div class="bg-gradient-to-br from-slate-900 to-red-950 text-white rounded-3xl p-6 md:p-8 shadow-2xl">
             <div class="text-center mb-6">
@@ -108,13 +108,13 @@
                 <p class="text-xs text-slate-300 mt-1">Klik tombol di bawah untuk memberikan dukungan moral Anda.</p>
             </div>
 
-            <!-- Interactive Counter -->
+            <!-- Interactive Counter Online -->
             <div class="flex flex-col items-center justify-center space-y-4">
                 <div class="text-center">
-                    <span id="voteCount" class="text-5xl font-extrabold text-yellow-400">101</span>
-                    <span class="block text-xs text-slate-400 mt-1">Dukungan Masuk Hari Ini</span>
+                    <span id="voteCount" class="text-5xl font-extrabold text-yellow-400">...</span>
+                    <span class="block text-xs text-slate-400 mt-1">Dukungan Masuk Terdaftar Online</span>
                 </div>
-                <button onclick="tambahDukungan()" class="bg-red-600 hover:bg-red-500 text-white font-bold px-8 py-3 rounded-full shadow-lg transform active:scale-95 transition flex items-center space-x-2">
+                <button id="btnDukung" onclick="tambahDukunganOnline()" class="bg-red-600 hover:bg-red-500 text-white font-bold px-8 py-3 rounded-full shadow-lg transform active:scale-95 transition flex items-center space-x-2">
                     <i class="fas fa-heart text-yellow-300"></i>
                     <span>Coblos / Dukung No. 01!</span>
                 </button>
@@ -129,17 +129,48 @@
         <p class="mt-1 text-slate-500">Coblos Nomor 1, Gantengnya Nyata, Kerjanya Terbukti!</p>
     </footer>
 
+    <!-- Script Counter Online (Penyimpanan Cloud) -->
     <script>
-        let count = 101;
-        function tambahDukungan() {
-            count++;
-            document.getElementById('voteCount').innerText = count;
-            const msg = document.getElementById('thankYouMsg');
-            msg.classList.remove('hidden');
-            setTimeout(() => {
-                msg.classList.add('hidden');
-            }, 3000);
+        const namespace = "ekoganteng_rw018_2026";
+        const key = "dukungan_suara";
+
+        function muatDukunganOnline() {
+            fetch(`https://api.countapi.xyz/get/${namespace}/${key}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.value !== undefined) {
+                        document.getElementById('voteCount').innerText = data.value;
+                    } else {
+                        document.getElementById('voteCount').innerText = "101";
+                    }
+                })
+                .catch(() => {
+                    document.getElementById('voteCount').innerText = "101";
+                });
         }
+
+        function tambahDukunganOnline() {
+            const btn = document.getElementById('btnDukung');
+            btn.disabled = true;
+
+            fetch(`https://api.countapi.xyz/hit/${namespace}/${key}`)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('voteCount').innerText = data.value;
+                    const msg = document.getElementById('thankYouMsg');
+                    msg.classList.remove('hidden');
+                    setTimeout(() => {
+                        msg.classList.add('hidden');
+                        btn.disabled = false;
+                    }, 2500);
+                })
+                .catch(err => {
+                    console.error("Gagal menambah suara:", err);
+                    btn.disabled = false;
+                });
+        }
+
+        window.onload = muatDukunganOnline;
     </script>
 </body>
 </html>
